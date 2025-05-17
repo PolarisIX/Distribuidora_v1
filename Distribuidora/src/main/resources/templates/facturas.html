@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Listado de Facturas</title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <style>
+        /* Estilos globales */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-image: url('/img/fondofactura.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            padding: 20px;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            z-index: 0;
+        }
+
+        h1 {
+            color: #fff;
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            text-align: center;
+            z-index: 2;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            z-index: 2;
+        }
+
+        .table-container {
+            width: 100%;
+            max-height: 500px;
+            overflow-y: auto;
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 8px;
+            padding: 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background-color: transparent;
+            border-radius: 8px;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #333;
+            color: #fff;
+            font-weight: bold;
+        }
+
+        td {
+            color: #000;
+        }
+
+        /* Estilo para los repuestos */
+        .repuestos-list {
+            display: block;
+            line-height: 1.6;
+        }
+
+        .repuestos-list span {
+            display: block;
+        }
+
+        /* Botones generales */
+        .btn {
+            font-size: 16px;
+            padding: 12px 25px;
+            background: rgb(128, 128, 128); /* Color gris base */
+            border: none;
+            border-radius: 50px;
+            color: #000;
+            outline: none;
+            cursor: pointer;
+            transition: all 0.4s;
+            display: inline-block;
+            text-align: center;
+            min-width: 170px;
+            white-space: nowrap;
+        }
+
+        .btn:hover {
+            box-shadow: inset 0 0 0 4px #ef476f, 
+                        inset 0 0 0 8px #ffd166, 
+                        inset 0 0 0 12px #06d6a0,
+                        inset 0 0 0 16px #118ab2;
+            background: #073b4c;
+            color: #fff;
+        }
+
+        .btn-primary {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .btn-danger {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        .btn-edit, .btn-danger {
+            background-color: #ff5722; /* Color naranja para Editar y Eliminar */
+            color: white;
+            text-decoration: none;
+            /* Quitar el efecto hover */
+            transition: none;
+        }
+
+        /* Contenedor de los botones de acción al final */
+        .button-container {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            margin-top: 20px;
+            position: relative;
+            gap: 20px;
+        }
+
+        .button-container a {
+            flex-grow: 1;
+            text-align: center;
+        }
+
+        /* Botón de regresar con efecto (ahora tiene el mismo estilo que el de Agregar) */
+        .btn-regresar {
+            font-size: 16px;
+            padding: 12px 25px;
+            background: rgb(128, 128, 128); /* Color gris base */
+            border: none;
+            border-radius: 50px;
+            color: #000;
+            outline: none;
+            cursor: pointer;
+            transition: all 0.4s;
+            display: inline-block;
+            text-align: center;
+            min-width: 170px;
+            white-space: nowrap;
+        }
+
+        .btn-regresar:hover {
+            box-shadow: inset 0 0 0 4px #ef476f, 
+                        inset 0 0 0 8px #ffd166, 
+                        inset 0 0 0 12px #06d6a0,
+                        inset 0 0 0 16px #118ab2;
+            background: #073b4c;
+            color: #fff;
+        }
+
+        /* Logo en la parte superior */
+        .logo-home {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            width: 120px;
+            height: auto;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Lista de Facturas</h1>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Cliente</th>
+                        <th>Vehículo</th> <!-- Columna de vehículo añadida -->
+                        <th>Mecánico</th> <!-- Columna de mecánico añadida -->
+                        <th>Repuestos</th>
+                        <th>Costo Uni.</th>
+						<th>Descripcion</th>
+                        <th>Total</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="factura, iterStat : ${facturas}">
+                        <td th:text="${iterStat.index + 1}"></td>
+                        <td th:text="${factura.cliente != null ? factura.cliente.nombre : 'Sin cliente'}"></td>
+                        <td th:text="${factura.cliente != null && factura.cliente.vehiculos != null && !factura.cliente.vehiculos.empty ? 
+                                     factura.cliente.vehiculos[0].placa : 'Sin vehículo'}"></td> <!-- Vehículo y placa -->
+                        <td th:text="${factura.mecanico != null ? factura.mecanico.nombre : 'Sin mecánico'}"></td> <!-- Información del mecánico -->
+                        <td>
+                            <span th:if="${factura.repuestos != null && !factura.repuestos.empty}">
+                                <span th:each="repuesto : ${factura.repuestos}" class="repuestos-list">
+                                    <span th:text="${repuesto.nombre}"></span>
+                                </span>
+                            </span>
+                            <span th:if="${factura.repuestos == null || factura.repuestos.empty}">Sin repuestos</span>
+                        </td>
+						 <td th:text="${factura.cantidad}"></td>
+						<td th:text="${factura.descripcion}"></td>
+						
+                       
+                        <td th:text="${'$' + #numbers.formatDecimal(factura.total, 0, 'COMMA', 2, 'POINT')}"></td>
+                        <td class="actions">
+                            <a th:href="@{/facturas/editar/{id}(id=${factura.id})}" class="btn btn-edit">Editar</a>
+                            <a th:href="@{/facturas/eliminar/{id}(id=${factura.id})}" class="btn btn-danger"
+                               onclick="return confirm('¿Estás seguro de que deseas eliminar esta factura?')">Eliminar</a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+		<!-- Mostrar alertas según la acción -->
+		   <script>
+		       document.addEventListener('DOMContentLoaded', () => {
+		           const urlParams = new URLSearchParams(window.location.search);
+		           const accion = urlParams.get('accion');
+		
+		           if (accion) {
+		               switch (accion) {
+		                   case 'agregado':
+		                       alert("¡La Factura ha sido agregado correctamente!");
+		                       break;
+		                   case 'editado':
+		                       alert("¡La Factura ha sido editado correctamente!");
+		                       break;
+		                   case 'eliminado':
+		                       alert("¡La Factura ha sido eliminado correctamente!");
+		                       break;
+		                   default:
+		                       break;
+		               }
+		           }
+		       });
+		   </script>
+        <div class="button-container">
+            <a href="/facturas/nuevo" class="btn">Agregar Factura</a>
+            <a href="/administrador/inicio" class="btn-regresar">Regresar</a>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/assets/css/home.css">
+    <link rel="icon" href="/assets/img/leon.png" />
+    <title>Registro de Administradores</title>
+</head>
+<body>
+    <header>
+        <a href="#">
+            <img src="/assets/img/gov_co.png" class="banner-img">
+        </a>
+    </header>
+    <nav>
+       
+    </nav>
+    <hr>
+    <main class="form-registro">
+        <form th:action="@{/administrador/registro}" method="post">
+            <!-- Campo para ID (asumido que es un campo único) -->
+            <label for="id">ID:</label>
+            <input type="text" id="id" name="id" required>
+            <br>
+
+            <!-- Campo para Cédula -->
+            <label for="cedula">Cédula:</label>
+            <input type="text" id="cedula" name="cedula" required>
+            <br>
+
+            <!-- Campo para Nombre -->
+            <label for="nombre">Nombre:</label>
+            <input type="text" id="nombre" name="nombre" required>
+            <br>
+
+            <!-- Campo para Correo Electrónico -->
+            <label for="email">Correo Electrónico:</label>
+            <input type="email" id="email" name="email" required>
+            <br>
+
+            <!-- Campo para Contraseña -->
+            <label for="contra">Contraseña:</label>
+            <input type="password" id="contra" name="contra" required>
+            <br>
+
+            <input type="submit" value="Registrar">
+        </form>
+    </main>
+</body>
+</html>

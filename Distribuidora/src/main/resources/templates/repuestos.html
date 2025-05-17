@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Gestión de Repuestos</title>
+    <link rel="icon" href="/img/leon.png" />
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-image: url('/img/fondobodega.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            padding: 20px;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            z-index: 0;
+        }
+
+        h1 {
+            color: #fff;
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            text-align: center;
+            z-index: 2;
+        }
+
+        .table-container {
+            width: 80%;
+            max-height: 500px;
+            overflow-y: auto;
+            background-color: rgba(255, 255, 255, 0.6);
+            border-radius: 8px;
+            padding: 10px;
+            z-index: 2;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            background-color: transparent;
+            border-radius: 8px;
+        }
+
+        table th, table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        table th {
+            background-color: rgba(0, 0, 0, 0.6);
+            color: #fff;
+            font-weight: bold;
+        }
+
+        table td {
+            background-color: rgba(255, 255, 255, 0.3);
+        }
+
+        table td ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .edit-btn, .delete-btn {
+            display: inline-block;
+            background-color: #ff5722;
+            color: white;
+            padding: 10px 20px;
+            font-size: 14px;
+            font-weight: 700;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: all ease 0.1s;
+            box-shadow: 0px 5px 0px 0px #e64a19;
+        }
+
+        .edit-btn:hover, .delete-btn:hover {
+            background-color: #e64a19;
+        }
+
+        .edit-btn:active, .delete-btn:active {
+            transform: translateY(5px);
+            box-shadow: 0px 0px 0px 0px #e64a19;
+        }
+
+        .button {
+            all: unset;
+            display: flex;
+            align-items: center;
+            position: relative;
+            padding: 0.5em 1.5em;
+            border: rgb(0, 0, 0) solid 0.15em;
+            border-radius: 0.25em;
+            color: rgb(255, 128, 0);
+            font-size: 1.2em;
+            font-weight: 600;
+            cursor: pointer;
+            overflow: hidden;
+            transition: border 300ms, color 300ms;
+            user-select: none;
+        }
+
+        .button p {
+            z-index: 1;
+        }
+
+        .button:hover {
+            color: #212121;
+        }
+
+        .button:active {
+            border-color: teal;
+        }
+
+        .button::after, .button::before {
+            content: "";
+            position: absolute;
+            width: 7em;
+            aspect-ratio: 1;
+            background: rgb(255, 128, 0);
+            opacity: 50%;
+            border-radius: 50%;
+            transition: transform 500ms, background 300ms;
+        }
+
+        .button::before {
+            left: 0;
+            transform: translateX(-6em);
+        }
+
+        .button::after {
+            right: 0;
+            transform: translateX(6em);
+        }
+
+        .button:hover:before {
+            transform: translateX(-1em);
+        }
+
+        .button:hover:after {
+            transform: translateX(1em);
+        }
+
+        .button:active:before,
+        .button:active:after {
+            background: teal;
+        }
+
+        .button-container {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        .button-container a {
+            text-align: center;
+        }
+
+        /* Clases para el fondo según cantidad */
+        .low-quantity {
+            background-color: red;
+        }
+
+        .medium-quantity {
+            background-color: yellow;
+        }
+
+        .high-quantity {
+            background-color: green;
+        }
+    </style>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const accion = urlParams.get('accion');
+    
+            if (accion) {
+                switch (accion) {
+                    case 'agregado':
+                        alert("¡El Repuesto ha sido agregado correctamente!");
+                        break;
+                    case 'editado':
+                        alert("¡El Repuesto ha sido editado correctamente!");
+                        break;
+                    case 'eliminado':
+                        alert("¡El Repuesto ha sido eliminado correctamente!");
+                        break;
+                    default:
+                        break;
+                }
+            }
+        });
+    </script>
+</head>
+<body>
+
+    <h1>Inventario de Repuestos</h1>
+
+    <div class="table-container">
+        <table border="1">
+            <thead>
+                <tr>
+                    <th>Fecha de ingreso</th>
+                    <th>Nombre</th>
+                    <th>Cantidad</th>
+                    <th>Precio</th>
+					<th>Descripcion</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="repuesto : ${repuestos}">
+                    <td th:text="${repuesto.fechaCreacion}"></td>
+                    <td th:text="${repuesto.nombre}" 
+                        th:class="${repuesto.cantidad < 10 ? 'low-quantity' : (repuesto.cantidad == 10 ? 'medium-quantity' : 'high-quantity')}"></td>
+                    <td th:text="${repuesto.cantidad}"></td>
+                    <td th:text="${repuesto.precio}"></td>
+					<td th:text="${repuesto.descripcion}"></td>
+                    <td>
+                        <a th:href="@{/repuestos/editar/{id}(id=${repuesto.id})}" class="edit-btn">Editar</a> |
+                        <a th:href="@{/repuestos/eliminar/{id}(id=${repuesto.id})}" onclick="return confirm('¿Eliminar este repuesto?');" class="delete-btn">Eliminar</a>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="button-container">
+        <a th:href="@{/repuestos/nuevo}" class="button">Agregar Repuesto</a>
+        <a th:href="@{/}" class="button">Regresar</a>
+    </div>
+    
+</body>
+</html>

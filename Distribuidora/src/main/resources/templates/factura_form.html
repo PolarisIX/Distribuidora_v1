@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Formulario de Factura</title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <style>
+        /* Estilos generales */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-image: url('/img/formmecanico.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            padding: 20px;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            z-index: 0;
+        }
+
+        .logo-home {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            width: 120px;
+            height: auto;
+        }
+
+        .container {
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(10px);
+            padding: 30px 20px;
+            border-radius: 8px;
+            max-width: 700px;
+            width: 100%;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+            z-index: 2;
+        }
+
+        h2 {
+            color: #FAC921;
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 2rem;
+        }
+
+        form label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #fff;
+        }
+
+        form input[type="text"],
+        form input[type="email"],
+        form select,
+        form input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+
+        form button[type="submit"] {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            background-color: rgb(255, 128, 64);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.1s;
+            box-shadow: 0 5px 0 rgb(255, 128, 64);
+        }
+
+        form button[type="submit"]:hover {
+            background-color: #ff5722;
+        }
+
+        form button[type="submit"]:active {
+            transform: translateY(4px);
+            box-shadow: none;
+        }
+
+        .back-btn {
+            display: block;
+            margin-top: 20px;
+            color: #FAC921;
+            text-align: center;
+            font-size: 16px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: color 0.3s ease;
+        }
+
+        .back-btn:hover {
+            color: #ffd700;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+
+        .btn-primary {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .btn-secondary {
+            background-color: #6c757d;
+            color: white;
+        }
+
+        /* Ajustes para los repuestos */
+        .checkbox-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Ajustar el tamaño de los campos de cantidad y descripción */
+        .form-group input[type="text"], 
+        .form-group textarea {
+            width: calc(100% - 40px); /* Ajustar para que el tamaño sea el mismo que la tabla */
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+
+        /* Mejorar la apariencia de los campos de texto y cantidad */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        /* Estilo para alinear los botones uno al lado del otro */
+        .form-group.buttons {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .form-group.buttons .btn {
+            width: 48%; /* Ajustar el ancho de los botones */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2 th:text="${factura.id != null ? 'Editar Factura' : 'Nueva Factura'}"></h2>
+
+        <form th:action="@{${factura.id != null ? '/facturas/actualizar/' + factura.id : '/facturas/guardar'}}"
+              th:object="${factura}" method="post" onsubmit="return validarFormulario()">
+
+            <!-- Selección de Cliente -->
+            <div class="form-group">
+                <label for="cliente">Cliente:</label>
+                <select id="cliente" th:field="*{cliente}" class="form-control" required>
+                    <option value="">Seleccione un Cliente</option>
+                    <option th:each="cliente : ${clientes}"
+                            th:value="${cliente.id}"
+                            th:text="${cliente.nombre + ' - Vehículo: ' + 
+                            (cliente.vehiculos != null && !cliente.vehiculos.empty ? 
+                            cliente.vehiculos[0].placa : 'Sin vehículo')}">
+                    </option>
+                </select>
+            </div>
+
+            <!-- Mecánico Selection -->
+            <div class="form-group">
+                <label for="mecanico">Mecánico:</label>
+                <select id="mecanico" th:field="*{mecanico}" required>
+                    <option value="">Seleccione un Mecánico</option>
+                    <option th:each="mecanicoOpt : ${mecanicos}"
+                            th:value="${mecanicoOpt.id}"
+                            th:text="${mecanicoOpt.nombre}"></option>
+                </select>
+            </div>
+
+            <!-- Repuestos Checkboxes -->
+            <div class="form-group">
+                <label>Repuestos:</label>
+                <div class="checkbox-group">
+                    <div th:each="repuestoOpt : ${repuestos}" class="checkbox-item" data-precio="${repuestoOpt.precio}">
+                        <div>
+                            <input type="checkbox" 
+                                   th:field="*{repuestos}"
+                                   th:value="${repuestoOpt.id}"
+                                   th:checked="${factura.repuestos != null && factura.repuestos.contains(repuestoOpt)}"
+                                   th:id="${'repuesto-' + repuestoOpt.id}"/>
+                            <label th:for="${'repuesto-' + repuestoOpt.id}" 
+                                   th:text="${repuestoOpt.nombre}"></label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Campo de cantidad total como cuadro independiente -->
+            <div class="form-group">
+                <label for="cantidad">Costo Unitario (números separados por comas):</label>
+                <input type="text" id="cantidad" name="cantidad" class="form-control" 
+                       pattern="(\d+,)*\d+" title="Solo se permiten números separados por comas" 
+                       placeholder="Ej: 5, 10, 15" required>
+            </div>
+
+            <!-- Descripción -->
+            <div class="form-group">
+                <label for="descripcion">Descripción:</label>
+                <textarea th:field="*{descripcion}" id="descripcion" class="form-control" rows="4" required></textarea>
+            </div>
+
+            <div class="form-group buttons">
+                <button type="submit" class="btn btn-primary">Guardar</button>
+                <a href="/facturas" class="btn btn-secondary">Regresar</a>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        function validarFormulario() {
+            const cantidadInput = document.getElementById('cantidad');
+            const cantidadText = cantidadInput.value.trim();
+            if (cantidadText) {
+                const cantidades = cantidadText.split(',').map(num => parseFloat(num.trim()));
+                const total = cantidades.reduce((acc, curr) => acc + curr, 0);
+                alert("El total de las cantidades es: " + total);
+                // Puedes asignar el total al campo hidden que enviarás al servidor
+                // Ejemplo:
+                // document.getElementById('total').value = total;
+            }
+            return true;
+        }
+    </script>
+</body>
+</html>

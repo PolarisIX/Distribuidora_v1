@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formulario de Cliente</title>
+    <link rel="icon" href="/img/leon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-image: url('/img/fondoform.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            padding: 20px;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            z-index: 0;
+        }
+
+        .container {
+            background: rgba(0, 0, 0, 0.7); /* Fondo más oscuro */
+            backdrop-filter: blur(10px); /* Difumina el fondo detrás */
+            padding: 30px 20px;
+            border-radius: 8px;
+            max-width: 600px;
+            width: 90%;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+            z-index: 2;
+        }
+
+        h2 {
+            color: #FAC921;
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 2rem;
+        }
+
+        form label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #fff;
+        }
+
+        form input[type="text"],
+        form input[type="email"],
+        form select {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+
+        form button[type="submit"] {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            background-color: rgb(255, 128, 64);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.1s;
+            box-shadow: 0 5px 0 rgb(255, 128, 64);
+        }
+
+        form button[type="submit"]:hover {
+            background-color:#ff5722;
+        }
+
+        form button[type="submit"]:active {
+            transform: translateY(4px);
+            box-shadow: none;
+        }
+
+        .back-btn {
+            display: block;
+            margin-top: 20px;
+            color: #FAC921;
+            text-align: center;
+            font-size: 16px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: color 0.3s ease;
+        }
+
+        .back-btn:hover {
+            color: #ffd700;
+        }
+
+        /* Logo en la parte superior izquierda */
+        .logo-home {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            width: 120px; /* Ajusta el tamaño del logo */
+            height: auto;
+        }
+
+    </style>
+</head>
+<body>
+    <a>
+        <img src="/img/logo.png" alt="Logo" class="logo-home">
+    </a>
+
+    <div class="container">
+        <h2 th:text="${cliente != null ? ' Cliente' : 'Nuevo Cliente'}"></h2>
+
+        <form th:action="@{${cliente.id != null} ? '/clientes/actualizar/' + ${cliente.id} : '/clientes/guardar'}" 
+              th:object="${cliente}" method="post">
+            <label for="cedula">Cédula:</label>
+            <input type="text" id="cedula" th:field="*{cedula}" required>
+
+            <label for="nombre">Nombre:</label>
+            <input type="text" id="nombre" th:field="*{nombre}" required>
+
+            <label for="telefono">Teléfono:</label>
+            <input type="text" id="telefono" th:field="*{telefono}" required>
+
+            <label for="email">Email:</label>
+            <input type="email" id="email" th:field="*{email}" required>
+
+            <label for="direccion">Dirección:</label>
+            <input type="text" id="direccion" th:field="*{direccion}" required>
+
+            <label for="placa">Placa del Vehículo:</label>
+            <select th:field="*{vehiculos[0].placa}" id="placa" required>
+                <option value="" disabled selected>Seleccione una placa</option>
+                <option th:each="placa : ${placas}" th:value="${placa}" th:text="${placa}"></option>
+            </select>
+
+            <button type="submit">Guardar</button>
+        </form>
+
+        <a href="/clientes" class="back-btn" th:href="@{/clientes}">Volver a la lista de clientes</a>
+    </div>
+</body>
+</html>

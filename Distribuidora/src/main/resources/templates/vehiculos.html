@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Gestión de Vehículos</title>
+    <link rel="icon" href="/img/leon.png" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-image: url('/img/forndovehiculo.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            padding: 20px;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            z-index: 0;
+        }
+
+        h1 {
+            color: #fff;
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            text-align: center;
+            z-index: 2;
+        }
+
+        /* Contenedor de la tabla con fondo semitransparente */
+        .table-container {
+            width: 80%;
+            max-height: 500px; /* Altura máxima */
+            overflow-y: auto;
+            background-color: rgba(255, 255, 255, 0.6); /* Fondo difuso */
+            border-radius: 8px;
+            padding: 10px;
+            z-index: 2;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            background-color: transparent;
+            border-radius: 8px;
+        }
+
+        table th, table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.3); /* Bordes sutiles */
+        }
+
+        table th {
+            background-color: rgba(0, 0, 0, 0.6);
+            color: #fff;
+            font-weight: bold;
+        }
+
+        table td {
+            background-color: rgba(255, 255, 255, 0.3); /* Celdas semitransparentes */
+        }
+
+        table td ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        /* Estilo para los botones Editar y Eliminar (color naranja) */
+        .edit-btn, .delete-btn {
+            display: inline-block;
+            background-color: #ff5722; /* Naranja */
+            color: white;
+            padding: 10px 20px;
+            font-size: 14px;
+            font-weight: 700;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: all ease 0.1s;
+            box-shadow: 0px 5px 0px 0px #e64a19; /* Sombra para los enlaces */
+        }
+
+        .edit-btn:hover, .delete-btn:hover {
+            background-color: #e64a19; /* Oscurecer el color de fondo al pasar el mouse */
+        }
+
+        .edit-btn:active, .delete-btn:active {
+            transform: translateY(5px);
+            box-shadow: 0px 0px 0px 0px #e64a19;
+        }
+
+        /* Estilos para los botones de Agregar y Regresar */
+        .button {
+            all: unset;
+            display: flex;
+            align-items: center;
+            position: relative;
+            padding: 0.5em 1.5em;  /* Reducción del tamaño de los botones */
+            border: rgb(0, 0, 0) solid 0.15em;
+            border-radius: 0.25em;
+            color: rgb(255, 128, 0);
+            font-size: 1.2em;  /* Reducido tamaño de texto */
+            font-weight: 600;
+            cursor: pointer;
+            overflow: hidden;
+            transition: border 300ms, color 300ms;
+            user-select: none;
+        }
+
+        .button p {
+            z-index: 1;
+        }
+
+        .button:hover {
+            color: #212121;
+        }
+
+        .button:active {
+            border-color: teal;
+        }
+
+        .button::after, .button::before {
+            content: "";
+            position: absolute;
+            width: 7em;  /* Reducido tamaño de los círculos */
+            aspect-ratio: 1;
+            background: rgb(255, 128, 0);
+            opacity: 50%;
+            border-radius: 50%;
+            transition: transform 500ms, background 300ms;
+        }
+
+        .button::before {
+            left: 0;
+            transform: translateX(-6em);  /* Ajustado para coincidir con el tamaño reducido */
+        }
+
+        .button::after {
+            right: 0;
+            transform: translateX(6em);  /* Ajustado para coincidir con el tamaño reducido */
+        }
+
+        .button:hover:before {
+            transform: translateX(-1em);
+        }
+
+        .button:hover:after {
+            transform: translateX(1em);
+        }
+
+        .button:active:before,
+        .button:active:after {
+            background: teal;
+        }
+
+        /* Contenedor de los botones y su disposición */
+        .button-container {
+            display: flex;
+            justify-content: center;  /* Centrado de los botones */
+            gap: 20px;
+            width: 100%;
+            margin-top: 20px;  /* Espacio debajo de la tabla */
+        }
+
+        .button-container a {
+            text-align: center;
+        }
+
+        /* Logo en la parte superior izquierda */
+        .logo-home {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            width: 120px; /* Ajusta el tamaño del logo */
+            height: auto;
+            z-index: 2;  /* Asegura que el logo esté encima de otros elementos */
+        }
+    </style>
+</head>
+<body>
+    <!-- Logo en la parte superior izquierda -->
+    <a><img src="/img/logo.png" alt="Logo" class="logo-home"></a>
+
+    <h1>Lista de Vehículos</h1>
+
+    <div class="table-container">
+        <table border="1">
+            <thead>
+                <tr>
+					<th>Fecha de Creación</th>
+                    <th>Marca</th>
+                    <th>Modelo</th>
+                    <th>Placa</th>
+					<th>Año</th>
+                    <th>Color</th>
+					<th>Tipo</th>
+					<th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Itera sobre la lista de vehículos proporcionada por el controlador -->
+                <tr th:each="vehiculo : ${vehiculos}">
+					<td th:text="${vehiculo.fechaCreacion}"></td>
+                    <td th:text="${vehiculo.marca}">Marca</td>
+                    <td th:text="${vehiculo.modelo}">Modelo</td>
+                    <td th:text="${vehiculo.placa}">Placa</td>
+					<td th:text="${vehiculo.anio}">Año</td>
+                    <td th:text="${vehiculo.color}">Color</td>
+					<td th:text="${vehiculo.tipo}">Tipo</td>
+					<td th:text="${vehiculo.estado}">Estado</td>
+                    <td>
+                        <!-- Botones Editar y Eliminar con clase específica -->
+                        <a th:href="@{/vehiculos/editar/{id}(id=${vehiculo.id})}" class="edit-btn">Editar</a> |
+                        <a th:href="@{/vehiculos/eliminar/{id}(id=${vehiculo.id})}" 
+                           onclick="return confirm('¿Estás seguro de que deseas eliminar este vehículo?');" class="delete-btn">Eliminar</a>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="button-container">
+        <a th:href="@{/vehiculos/nuevo}" class="button">Agregar Vehículo</a>
+        <a th:href="@{/administrador/inicio}" class="button">Regresar</a>
+    </div>
+</body>
+</html>
