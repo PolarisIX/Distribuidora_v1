@@ -1,0 +1,204 @@
+<!DOCTYPE html> 
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clientes</title>
+    <link rel="icon" href="/img/leon.png" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-image: url('/img/clientes.jpeg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            padding: 20px;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            z-index: 0;
+        }
+
+        h1 {
+            color: #fff;
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            text-align: center;
+            z-index: 2;
+        }
+
+        .table-container {
+            width: 90%;
+            height: 500px;
+            overflow-y: auto;
+            background-color: rgba(255, 255, 255, 0.7);
+            border-radius: 8px;
+            padding: 10px;
+            z-index: 2;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: transparent;
+        }
+
+        table th, table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        table th {
+            background-color: #333;
+            color: #fff;
+        }
+
+        .actions a {
+            background-color: #ff5722;
+            color: white;
+            padding: 8px 16px;
+            font-size: 14px;
+            font-weight: 700;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-right: 5px;
+            transition: background-color 0.3s;
+        }
+
+        .actions a:hover {
+            background-color: #e64a19;
+        }
+
+        .add-btn {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 5px;
+            text-decoration: none;
+            z-index: 2;
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: inline-block;
+        }
+
+        .add-btn:hover {
+            background-color: #45a049;
+        }
+
+        .back-btn {
+            background-color: #2196F3;
+            color: white;
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 5px;
+            text-decoration: none;
+            z-index: 2;
+            position: absolute;
+            bottom: 20px;
+            left: calc(50% + 130px);
+            display: inline-block;
+        }
+
+        .back-btn:hover {
+            background-color: #1976D2;
+        }
+
+        .logo-home {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            width: 120px;
+            height: auto;
+        }
+    </style>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const accion = urlParams.get('accion');
+
+            if (accion) {
+                switch (accion) {
+                    case 'agregado':
+                        alert("¡El cliente ha sido agregado correctamente!");
+                        break;
+                    case 'editado':
+                        alert("¡El cliente ha sido editado correctamente!");
+                        break;
+                    case 'eliminado':
+                        alert("¡El cliente ha sido eliminado correctamente!");
+                        break;
+                    default:
+                        break;
+                }
+            }
+        });
+    </script>
+</head>
+<body>
+    <h1>Lista de Clientes</h1>
+
+    <a>
+        <img src="/img/Logo.jpg" alt="Logo" class="logo-home">
+    </a>
+
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Cédula</th>
+                    <th>Nombre</th>
+                    <th>Teléfono</th>
+                    <th>Email</th>
+                    <th>Contraseña</th>
+                    <th>Dirección</th>
+                    <th>Nota</th>
+                    <th>Fecha Creación</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="cliente : ${clientes}">
+                    <td th:text="${cliente.cedula}"></td>
+                    <td th:text="${cliente.nombre}"></td>
+                    <td th:text="${cliente.telefono}"></td>
+                    <td th:text="${cliente.email}"></td>
+                    <td th:text="${cliente.contra}"></td>
+                    <td th:text="${cliente.direccion}"></td>
+                    <td th:text="${cliente.nota}"></td>
+                    <td th:text="${cliente.fechaCreacion != null ? cliente.fechaCreacion.format(T(java.time.format.DateTimeFormatter).ofPattern('yyyy-MM-dd HH:mm')) : ''}"></td>
+                    <td class="actions">
+                        <a th:href="@{/clientes/eliminar/{id}(id=${cliente.id})}">Eliminar</a>
+                        <a th:href="@{/clientes/editar/{id}(id=${cliente.id})}">Actualizar</a>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <a th:href="@{/clientes/nuevo}" class="add-btn">Nuevo Cliente</a>
+	<a th:href="@{/	administrador/inicio}" class="back-btn">Regresar</a>
+</body>
+</html>
+

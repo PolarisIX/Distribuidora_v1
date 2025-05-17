@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Agregar Factura</title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <style>
+        body {
+            background-color: #f0f0f0;
+            font-family: Arial, sans-serif;
+            padding: 30px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        form {
+            background: white;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.2);
+            width: 400px;
+        }
+        label {
+            font-weight: bold;
+            display: block;
+            margin-top: 15px;
+        }
+        input[type="text"], input[type="number"], textarea, select {
+            width: 100%;
+            padding: 8px 10px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            resize: vertical;
+        }
+        .btn-submit {
+            margin-top: 20px;
+            background-color: #118ab2;
+            border: none;
+            color: white;
+            padding: 12px;
+            width: 100%;
+            border-radius: 50px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .btn-submit:hover {
+            background-color: #0b5f73;
+        }
+    </style>
+</head>
+<body>
+
+<form th:action="@{/facturas/guardar}" th:object="${factura}" method="post">
+    <h2>Agregar Factura</h2>
+
+    <label for="clienteNombre">Nombre del Cliente</label>
+    <input type="text" id="clienteNombre" th:field="*{cliente.nombre}" placeholder="Ingrese nombre del cliente" required />
+
+    <label for="vendedorNombre">Nombre del Vendedor</label>
+    <input type="text" id="vendedorNombre" th:field="*{vendedor.nombre}" placeholder="Ingrese nombre del vendedor" required />
+
+    <label for="articulos">Artículos</label>
+    <select id="articulos" th:field="*{articulos}" multiple size="5" required>
+        <option th:each="articulo : ${articulosDisponibles}"
+                th:value="${articulo.id}"
+                th:text="${articulo.nombre}">
+        </option>
+    </select>
+
+    <label for="cantidad">Cantidad</label>
+    <input type="number" id="cantidad" th:field="*{cantidad}" min="1" placeholder="Ingrese cantidad" required />
+
+    <label for="descripcion">Descripción</label>
+    <textarea id="descripcion" th:field="*{descripcion}" rows="3" placeholder="Ingrese una descripción"></textarea>
+
+    <label for="total">Total</label>
+    <input type="number" step="0.01" id="total" th:field="*{total}" min="0" placeholder="Ingrese total" required />
+
+    <button type="submit" class="btn-submit">Guardar Factura</button>
+</form>
+
+</body>
+</html>
+

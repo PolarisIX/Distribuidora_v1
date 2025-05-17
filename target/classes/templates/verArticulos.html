@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Gestión de Artículos</title>
+    <link rel="icon" href="/img/leon.png" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-image: url('/img/Articulos.jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            padding: 20px;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            z-index: 0;
+        }
+
+        h1 {
+            color: #fff;
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            text-align: center;
+            z-index: 2;
+        }
+
+        .table-container {
+            width: 90%;
+            max-height: 500px;
+            overflow-y: auto;
+            background-color: rgba(255, 255, 255, 0.6);
+            border-radius: 8px;
+            padding: 10px;
+            z-index: 2;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            background-color: transparent;
+            border-radius: 8px;
+        }
+
+        table th, table td {
+            padding: 12px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        table th {
+            background-color: rgba(0, 0, 0, 0.6);
+            color: #fff;
+            font-weight: bold;
+        }
+
+        table td {
+            background-color: rgba(255, 255, 255, 0.3);
+        }
+
+        table img {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 2px solid #fff;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .edit-btn, .delete-btn {
+            display: inline-block;
+            background-color: #ff5722;
+            color: white;
+            padding: 10px 20px;
+            font-size: 14px;
+            font-weight: 700;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: all ease 0.1s;
+            box-shadow: 0px 5px 0px 0px #e64a19;
+        }
+
+        .edit-btn:hover, .delete-btn:hover {
+            background-color: #e64a19;
+        }
+
+        .edit-btn:active, .delete-btn:active {
+            transform: translateY(5px);
+            box-shadow: 0px 0px 0px 0px #e64a19;
+        }
+
+        .button {
+            all: unset;
+            display: flex;
+            align-items: center;
+            position: relative;
+            padding: 0.5em 1.5em;
+            border: rgb(0, 0, 0) solid 0.15em;
+            border-radius: 0.25em;
+            color: rgb(255, 128, 0);
+            font-size: 1.2em;
+            font-weight: 600;
+            cursor: pointer;
+            overflow: hidden;
+            transition: border 300ms, color 300ms;
+            user-select: none;
+        }
+
+        .button p {
+            z-index: 1;
+        }
+
+        .button:hover {
+            color: #212121;
+        }
+
+        .button:active {
+            border-color: teal;
+        }
+
+        .button::after, .button::before {
+            content: "";
+            position: absolute;
+            width: 7em;
+            aspect-ratio: 1;
+            background: rgb(255, 128, 0);
+            opacity: 50%;
+            border-radius: 50%;
+            transition: transform 500ms, background 300ms;
+        }
+
+        .button::before {
+            left: 0;
+            transform: translateX(-6em);
+        }
+
+        .button::after {
+            right: 0;
+            transform: translateX(6em);
+        }
+
+        .button:hover:before {
+            transform: translateX(-1em);
+        }
+
+        .button:hover:after {
+            transform: translateX(1em);
+        }
+
+        .button:active:before,
+        .button:active:after {
+            background: teal;
+        }
+
+        .button-container {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        .logo-home {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            width: 120px;
+            height: auto;
+            z-index: 2;
+        }
+    </style>
+</head>
+<body>
+    <a><img src="/img/Logo.jpg" alt="Logo" class="logo-home"></a>
+
+    <h1>Lista de Artículos</h1>
+
+    <div class="table-container">
+        <table border="1">
+            <thead>
+                <tr>
+                    <th>Fecha de Creación</th>
+                    <th>Nombre</th>
+                    <th>Categoría</th>
+                    <th>Marca</th>
+                    <th>Precio</th>
+                    <th>Cantidad</th>
+                    <th>Imagen</th>
+                    <th>Descripción</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+			<tbody>
+			    <tr th:each="articulo : ${articulos}">
+					<td th:text="${#temporals.format(articulo.fechaCreacion, 'yyyy-MM-dd')}"></td>
+			        <td th:text="${articulo.nombre}">Nombre...</td>
+			        <td th:text="${articulo.categoria}">Categoría...</td>
+			        <td th:text="${articulo.marca}">Marca...</td>
+			        <td th:text="${articulo.precio}">Precio...</td>
+			        <td th:text="${articulo.cantidad}">Cantidad...</td>
+			        <td>
+			            <img th:if="${articulo.imagen != null}" th:src="@{/img/{img}(img=${articulo.imagen})}" alt="Imagen Artículo">
+			            <span th:if="${articulo.imagen == null}">Sin Imagen</span>
+			        </td>
+			        <td th:text="${articulo.descripcion}">Descripción...</td>
+			        <td>
+			            <a th:href="@{'/articulos/editar/' + ${articulo.id}}" class="edit-btn">Editar</a>
+						
+			            <a th:href="@{'/articulos/eliminar/' + ${articulo.id}}" class="delete-btn"
+			               onclick="return confirm('¿Estás seguro de eliminar este artículo?');">Eliminar</a>
+			        </td>
+			    </tr>
+			</tbody>
+ 
+        </table>
+    </div>
+
+    <div class="button-container">
+        <a th:href="@{/articulos/nuevo}" class="button">Agregar Artículo</a>
+        <a th:href="@{/administrador/inicio}" class="button">Regresar</a>
+    </div>
+</body>
+</html>

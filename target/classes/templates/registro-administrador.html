@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro de Cliente</title>
+    <link rel="icon" href="/assets/img/leon.png">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+
+        .form-container {
+            max-width: 500px;
+            margin: 40px auto;
+            padding: 30px;
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 25px;
+            color: #343a40;
+        }
+
+        .btn-primary {
+            width: 100%;
+        }
+
+        label {
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+
+<div class="form-container">
+    <h2>Registro de Cliente</h2>
+    <form th:action="@{/clientes/guardar}" method="post" th:object="${cliente}">
+        <!-- Cédula -->
+        <div class="form-group">
+            <label for="cedula">Cédula</label>
+            <input type="text" id="cedula" th:field="*{cedula}" class="form-control" required>
+        </div>
+
+        <!-- Nombre -->
+        <div class="form-group">
+            <label for="nombre">Nombre</label>
+            <input type="text" id="nombre" th:field="*{nombre}" class="form-control" required>
+        </div>
+
+        <!-- Teléfono -->
+        <div class="form-group">
+            <label for="telefono">Teléfono</label>
+            <input type="text" id="telefono" th:field="*{telefono}" class="form-control" placeholder="Ej: 3012345678" required>
+        </div>
+
+        <!-- Correo -->
+        <div class="form-group">
+            <label for="email">Correo Electrónico</label>
+            <input type="email" id="email" th:field="*{email}" class="form-control" required>
+        </div>
+
+        <!-- Contraseña -->
+        <div class="form-group">
+            <label for="contra">Contraseña</label>
+            <input type="password" id="contra" th:field="*{contra}" class="form-control" required>
+        </div>
+
+        <!-- Dirección -->
+        <div class="form-group">
+            <label for="direccion">Dirección</label>
+            <input type="text" id="direccion" th:field="*{direccion}" class="form-control">
+        </div>
+
+        <!-- Botones -->
+        <button type="submit" class="btn btn-primary mb-2">Registrarse</button>
+		<a href="/" class="btn btn-secondary btn-block mt-2">Cancelar</a>
+    </form>
+</div>
+
+</body>
+</html>
+
