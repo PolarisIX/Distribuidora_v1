@@ -252,7 +252,7 @@
             <h2></h2>
             <form th:action="@{/administrador/login}" method="post" class="form">
                 <p th:if="${mensaje}" class="error-message">Error, contraseña o cédula incorrectas</p>
-                <input type="text" name="cedula" placeholder="Ingresa tu cédula de coordinador" class="input">
+                <input type="text" name="cedula" placeholder="Ingresa tu cédula" class="input">
                 <input type="password" name="contra" placeholder="Ingresa tu contraseña" class="input">
 				<!-- Agregar esto -->
 				  <select name="tipoUsuario" required>

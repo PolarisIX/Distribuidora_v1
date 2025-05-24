@@ -9,7 +9,7 @@ import com.Distribuidora.app.model.Repartidor;
 import com.Distribuidora.app.repository.RepartidorRepository;
 
 @RestController
-@RequestMapping("/api/repartidores")
+@RequestMapping("/repartidores")
 public class RepartidorRestController {
 
     @Autowired
