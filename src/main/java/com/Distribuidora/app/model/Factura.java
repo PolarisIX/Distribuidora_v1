@@ -8,20 +8,19 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 @Document(collection = "facturas")
 public class Factura {
+
     @Id
     private String id;
 
-    @DBRef
-    private Cliente cliente;
-    
-    @DBRef
+    private String cedulaCliente;
+    private String nombreCliente;
+    private String telefonoCliente;
+
     private Vendedor vendedor;
-    
-    @DBRef
+
     private List<Articulo> articulos;
-    
-    private String cantidad;
-    private String descripcion;
+
+  
     private double total;
 
     public Factura() {
@@ -35,12 +34,28 @@ public class Factura {
         this.id = id;
     }
 
-    public Cliente getCliente() {
-        return cliente;
+    public String getCedulaCliente() {
+        return cedulaCliente;
     }
 
-    public void setCliente(Cliente cliente) {
-        this.cliente = cliente;
+    public void setCedulaCliente(String cedulaCliente) {
+        this.cedulaCliente = cedulaCliente;
+    }
+
+    public String getNombreCliente() {
+        return nombreCliente;
+    }
+
+    public void setNombreCliente(String nombreCliente) {
+        this.nombreCliente = nombreCliente;
+    }
+
+    public String getTelefonoCliente() {
+        return telefonoCliente;
+    }
+
+    public void setTelefonoCliente(String telefonoCliente) {
+        this.telefonoCliente = telefonoCliente;
     }
 
     public Vendedor getVendedor() {
@@ -59,21 +74,7 @@ public class Factura {
         this.articulos = articulos;
     }
 
-    public String getCantidad() {
-        return cantidad;
-    }
-
-    public void setCantidad(String cantidad) {
-        this.cantidad = cantidad;
-    }
-
-    public String getDescripcion() {
-        return descripcion;
-    }
-
-    public void setDescripcion(String descripcion) {
-        this.descripcion = descripcion;
-    }
+    
 
     public double getTotal() {
         return total;

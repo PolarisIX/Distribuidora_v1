@@ -3,6 +3,8 @@
 <head>
     <title>Catálogo Cliente</title>
     <link rel="icon" href="/img/leon.png" />
+	
+	
     <style>
         body {
             margin: 0;
@@ -173,6 +175,13 @@
 
     <!-- Título -->
     <h1>Catálogo de Artículos</h1>
+	<!-- Botón Ver mis pedidos -->
+	<div style="text-align:center; margin: 20px;">
+		<a th:href="@{/pedidos/mispedidos}"
+	       style="background-color: #ffd700; color: #000; padding: 12px 25px; border-radius: 8px; font-weight: bold; text-decoration: none; display: inline-block; transition: background-color 0.3s ease;">
+	        Ver mis pedidos
+	    </a>
+	</div>
 
     <!-- Cards -->
     <div class="cards-container">
@@ -190,153 +199,145 @@
 
     <!-- Pedido -->
     <div class="pedido-container">
-        <h2>Realizar Pedido</h2>
-        <form id="pedidoForm" th:action="@{/pedido}" method="post">
-            <label for="articuloSelect">Selecciona un artículo:</label>
-            <select id="articuloSelect" name="articuloSelect">
-                <option value="" disabled selected>-- Elige un artículo --</option>
-                <option th:each="articulo : ${articulos}"
-                        th:value="${articulo.id}"
-                        th:data-nombre="${articulo.nombre}"
-                        th:data-precio="${articulo.precio}"
-                        th:text="${articulo.nombre + ' - $' + #numbers.formatDecimal(articulo.precio, 1, 'COMMA', 2, 'POINT')}">
-                    Artículo
-                </option>
-            </select>
-
-            <label for="cantidadInput">Cantidad:</label>
-            <input type="number" id="cantidadInput" min="1" value="1" />
-
-            <div class="monto">
-                Monto a pagar: $<span id="montoTotal">0.00</span>
-            </div>
-
-            <button type="button" id="btnAgregar">Agregar al pedido</button>
-
-            <table id="tablaPedido" style="display:none;">
-                <thead>
-                    <tr>
-                        <th>Artículo</th>
-                        <th>Cantidad</th>
-                        <th>Precio Unitario</th>
-                        <th>Subtotal</th>
-                        <th>Acción</th>
-                    </tr>
-                </thead>
-                <tbody>
-                </tbody>
-            </table>
-
-            <div class="total-container" id="totalGeneralContainer" style="display:none;">
-                Total a pagar: $<span id="totalGeneral">0.00</span>
-            </div>
-
-            <div id="inputsOcultos"></div>
-
-            <input type="submit" value="Enviar Pedido" />
-        </form>
+		<h2>Realizar Pedido</h2>
+		<form id="pedidoForm" th:action="@{/pedidos/guardar}" method="post">
+		
+		    <!-- Selección de Artículo -->
+		    <label for="articuloSelect">Selecciona un artículo:</label>
+		    <select id="articuloSelect">
+		        <option value="" disabled selected>-- Elige un artículo --</option>
+		        <option th:each="articulo : ${articulos}"
+		                th:value="${articulo.id}"
+		                th:data-nombre="${articulo.nombre}"
+		                th:data-precio="${articulo.precio}"
+		                th:text="${articulo.nombre + ' - $' + #numbers.formatDecimal(articulo.precio, 1, 'COMMA', 2, 'POINT')}">
+		        </option>
+		    </select>
+		
+		    <label for="cantidadInput">Cantidad:</label>
+		    <input type="number" id="cantidadInput" min="1" value="1" />
+		
+		    <div class="monto">
+		        Monto a pagar: $<span id="montoTotal">0.00</span>
+		    </div>
+		
+		    <button type="button" id="btnAgregar">Agregar al pedido</button>
+		
+		    <!-- Tabla dinámica de artículos -->
+		    <table id="tablaPedido" style="display:none;">
+		        <thead>
+		            <tr>
+		                <th>Artículo</th>
+		                <th>Cantidad</th>
+		                <th>Precio Unitario</th>
+		                <th>Subtotal</th>
+		                <th>Acción</th>
+		            </tr>
+		        </thead>
+		        <tbody></tbody>
+		    </table>
+		
+		    <div class="total-container" id="totalGeneralContainer" style="display:none;">
+		        Total a pagar: $<span id="totalGeneral">0.00</span>
+		    </div>
+		
+		    <!-- Dirección y notas -->
+		    <label for="direccionEntrega">Dirección de Entrega:</label>
+		    <input type="text" name="direccionEntrega" id="direccionEntrega" required />
+		
+		    <label for="notas">Notas:</label>
+		    <input type="text" name="notas" id="notas" />
+		
+		    <!-- Inputs ocultos para lista de artículos -->
+		    <div id="inputsOcultos"></div>
+			   
+		
+		    <input type="submit" value="Enviar Pedido" />
+		</form>
+ 
     </div>
 
-    <!-- Script (sin cambios) -->
-    <script>
-        const articuloSelect = document.getElementById('articuloSelect');
-        const cantidadInput = document.getElementById('cantidadInput');
-        const montoTotalSpan = document.getElementById('montoTotal');
-        const btnAgregar = document.getElementById('btnAgregar');
-        const tablaPedido = document.getElementById('tablaPedido');
-        const tbodyPedido = tablaPedido.querySelector('tbody');
-        const totalGeneralContainer = document.getElementById('totalGeneralContainer');
-        const totalGeneralSpan = document.getElementById('totalGeneral');
-        const inputsOcultos = document.getElementById('inputsOcultos');
+	<script>
+	let totalGeneral = 0;
+	const tabla = document.getElementById("tablaPedido");
+	const cuerpoTabla = tabla.querySelector("tbody");
+	const totalGeneralSpan = document.getElementById("totalGeneral");
+	const totalContainer = document.getElementById("totalGeneralContainer");
+	const inputsOcultos = document.getElementById("inputsOcultos");
+	
+	document.getElementById("btnAgregar").addEventListener("click", () => {
+	    const select = document.getElementById("articuloSelect");
+	    const cantidadInput = document.getElementById("cantidadInput");
+	    const articuloId = select.value;
+	    const nombre = select.options[select.selectedIndex].dataset.nombre;
+	    const precio = parseFloat(select.options[select.selectedIndex].dataset.precio);
+	    const cantidad = parseInt(cantidadInput.value);
+	
+	    if (!articuloId || cantidad <= 0) {
+	        alert("Selecciona un artículo válido y una cantidad mayor a 0.");
+	        return;
+	    }
+	
+	    const subtotal = precio * cantidad;
+	    totalGeneral += subtotal;
+	
+	    // Mostrar tabla y total
+	    tabla.style.display = "table";
+	    totalContainer.style.display = "block";
+	    totalGeneralSpan.textContent = totalGeneral.toFixed(2);
+	
+	    // Agregar fila a la tabla
+	    const fila = document.createElement("tr");
+	    fila.innerHTML = `
+	        <td>${nombre}</td>
+	        <td>${cantidad}</td>
+	        <td>$${precio.toFixed(2)}</td>
+	        <td>$${subtotal.toFixed(2)}</td>
+	        <td><button type="button" class="btnEliminar">Eliminar</button></td>
+	    `;
+	    cuerpoTabla.appendChild(fila);
+	
+	    // Agregar inputs ocultos
+	    inputsOcultos.innerHTML += `
+	        
+			<input type="hidden" name="articuloNombre[]" value="${nombre}" />
+			<input type="hidden" name="cantidad[]" value="${cantidad}" />
+			<input type="hidden" name="precio[]" value="${precio}" />
 
-        let pedido = [];
+	    `;
+	
+	    // Eliminar fila
+	    fila.querySelector(".btnEliminar").addEventListener("click", () => {
+	        totalGeneral -= subtotal;
+	        totalGeneralSpan.textContent = totalGeneral.toFixed(2);
+	        fila.remove();
+	        actualizarInputs();
+	        if (cuerpoTabla.children.length === 0) {
+	            tabla.style.display = "none";
+	            totalContainer.style.display = "none";
+	        }
+	    });
+	
+	    // Resetear selección
+	    select.selectedIndex = 0;
+	    cantidadInput.value = 1;
+	});
+	
+	// Actualiza los inputs ocultos al eliminar un artículo
+	function actualizarInputs() {
+	    inputsOcultos.innerHTML = "";
+	    [...cuerpoTabla.rows].forEach(fila => {
+	        const nombre = fila.cells[0].textContent;
+	        const cantidad = fila.cells[1].textContent;
+	        const precio = fila.cells[2].textContent.replace("$", "");
+	        inputsOcultos.innerHTML += `
+	            <input type="hidden" name="articuloNombre" value="${nombre}">
+	            <input type="hidden" name="cantidad" value="${cantidad}">
+	            <input type="hidden" name="precio" value="${precio}">
+	        `;
+	    });
+	}
+	</script>
 
-        function actualizarMonto() {
-            const option = articuloSelect.selectedOptions[0];
-            if (!option) {
-                montoTotalSpan.textContent = '0.00';
-                return;
-            }
-            const precio = parseFloat(option.getAttribute('data-precio')) || 0;
-            const cantidad = parseInt(cantidadInput.value) || 0;
-            const total = precio * cantidad;
-            montoTotalSpan.textContent = total.toFixed(2);
-        }
-
-        function actualizarTabla() {
-            tbodyPedido.innerHTML = '';
-            if (pedido.length === 0) {
-                tablaPedido.style.display = 'none';
-                totalGeneralContainer.style.display = 'none';
-                inputsOcultos.innerHTML = '';
-                return;
-            }
-            tablaPedido.style.display = 'table';
-            totalGeneralContainer.style.display = 'block';
-
-            let totalGeneral = 0;
-            inputsOcultos.innerHTML = '';
-
-            pedido.forEach((item, index) => {
-                const subtotal = item.precio * item.cantidad;
-                totalGeneral += subtotal;
-
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>${item.nombre}</td>
-                    <td>${item.cantidad}</td>
-                    <td>$${item.precio.toFixed(2)}</td>
-                    <td>$${subtotal.toFixed(2)}</td>
-                    <td><button type="button" class="btn-remove" data-index="${index}">Eliminar</button></td>
-                `;
-                tbodyPedido.appendChild(tr);
-
-                inputsOcultos.innerHTML += `
-                    <input type="hidden" name="pedido[${index}].articuloId" value="${item.id}" />
-                    <input type="hidden" name="pedido[${index}].cantidad" value="${item.cantidad}" />
-                `;
-            });
-
-            totalGeneralSpan.textContent = totalGeneral.toFixed(2);
-
-            document.querySelectorAll('.btn-remove').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    const idx = parseInt(e.target.getAttribute('data-index'));
-                    pedido.splice(idx, 1);
-                    actualizarTabla();
-                });
-            });
-        }
-
-        btnAgregar.addEventListener('click', () => {
-            const option = articuloSelect.selectedOptions[0];
-            if (!option || !cantidadInput.value || cantidadInput.value < 1) {
-                alert('Por favor, selecciona un artículo y una cantidad válida.');
-                return;
-            }
-
-            const id = option.value;
-            const nombre = option.getAttribute('data-nombre');
-            const precio = parseFloat(option.getAttribute('data-precio'));
-            const cantidad = parseInt(cantidadInput.value);
-
-            const existing = pedido.find(item => item.id === id);
-            if (existing) {
-                existing.cantidad += cantidad;
-            } else {
-                pedido.push({ id, nombre, precio, cantidad });
-            }
-
-            actualizarTabla();
-            cantidadInput.value = 1;
-            montoTotalSpan.textContent = '0.00';
-            articuloSelect.selectedIndex = 0;
-        });
-
-        articuloSelect.addEventListener('change', actualizarMonto);
-        cantidadInput.addEventListener('input', actualizarMonto);
-
-        actualizarMonto();
-    </script>
 </body>
 </html>

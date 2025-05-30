@@ -10,6 +10,8 @@ C:\SpringbootJOHANNANAYA\Distribuidora\src\main\java\com\Distribuidora\app\contr
 C:\SpringbootJOHANNANAYA\Distribuidora\src\main\java\com\Distribuidora\app\controller\InfoController.java
 C:\SpringbootJOHANNANAYA\Distribuidora\src\main\java\com\Distribuidora\app\controller\LoginController.java
 C:\SpringbootJOHANNANAYA\Distribuidora\src\main\java\com\Distribuidora\app\controller\MecanicoController.java
+C:\SpringbootJOHANNANAYA\Distribuidora\src\main\java\com\Distribuidora\app\controller\PedidoRestController.java
+C:\SpringbootJOHANNANAYA\Distribuidora\src\main\java\com\Distribuidora\app\controller\PedidoWebController.java
 C:\SpringbootJOHANNANAYA\Distribuidora\src\main\java\com\Distribuidora\app\controller\RepartidorRestController.java
 C:\SpringbootJOHANNANAYA\Distribuidora\src\main\java\com\Distribuidora\app\controller\RepartidorWebController.java
 C:\SpringbootJOHANNANAYA\Distribuidora\src\main\java\com\Distribuidora\app\controller\VendedorRestController.java
@@ -20,6 +22,7 @@ C:\SpringbootJOHANNANAYA\Distribuidora\src\main\java\com\Distribuidora\app\model
 C:\SpringbootJOHANNANAYA\Distribuidora\src\main\java\com\Distribuidora\app\model\Bodega.java
 C:\SpringbootJOHANNANAYA\Distribuidora\src\main\java\com\Distribuidora\app\model\Cliente.java
 C:\SpringbootJOHANNANAYA\Distribuidora\src\main\java\com\Distribuidora\app\model\Factura.java
+C:\SpringbootJOHANNANAYA\Distribuidora\src\main\java\com\Distribuidora\app\model\Pedido.java
 C:\SpringbootJOHANNANAYA\Distribuidora\src\main\java\com\Distribuidora\app\model\Repartidor.java
 C:\SpringbootJOHANNANAYA\Distribuidora\src\main\java\com\Distribuidora\app\model\Vendedor.java
 C:\SpringbootJOHANNANAYA\Distribuidora\src\main\java\com\Distribuidora\app\repository\AdministradorRepository.java
@@ -27,5 +30,6 @@ C:\SpringbootJOHANNANAYA\Distribuidora\src\main\java\com\Distribuidora\app\repos
 C:\SpringbootJOHANNANAYA\Distribuidora\src\main\java\com\Distribuidora\app\repository\BodegaRepository.java
 C:\SpringbootJOHANNANAYA\Distribuidora\src\main\java\com\Distribuidora\app\repository\ClienteRepository.java
 C:\SpringbootJOHANNANAYA\Distribuidora\src\main\java\com\Distribuidora\app\repository\FacturaRepository.java
+C:\SpringbootJOHANNANAYA\Distribuidora\src\main\java\com\Distribuidora\app\repository\PedidoRepository.java
 C:\SpringbootJOHANNANAYA\Distribuidora\src\main\java\com\Distribuidora\app\repository\RepartidorRepository.java
 C:\SpringbootJOHANNANAYA\Distribuidora\src\main\java\com\Distribuidora\app\repository\VendedorRepository.java

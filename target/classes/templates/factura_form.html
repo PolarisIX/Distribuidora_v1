@@ -17,7 +17,7 @@
             padding: 25px;
             border-radius: 8px;
             box-shadow: 0 0 15px rgba(0,0,0,0.2);
-            width: 400px;
+            width: 500px;
         }
         label {
             font-weight: bold;
@@ -32,7 +32,7 @@
             border-radius: 4px;
             resize: vertical;
         }
-        .btn-submit {
+        .btn-submit, .add-btn {
             margin-top: 20px;
             background-color: #118ab2;
             border: none;
@@ -44,42 +44,168 @@
             cursor: pointer;
             transition: background-color 0.3s ease;
         }
-        .btn-submit:hover {
+        .btn-submit:hover, .add-btn:hover {
             background-color: #0b5f73;
+        }
+        table {
+            margin-top: 20px;
+            width: 100%;
+            border-collapse: collapse;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+        .total {
+            text-align: right;
+            margin-top: 10px;
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
 
-<form th:action="@{/facturas/guardar}" th:object="${factura}" method="post">
+<form th:action="@{/facturas/guardar}" method="post">
     <h2>Agregar Factura</h2>
 
-    <label for="clienteNombre">Nombre del Cliente</label>
-    <input type="text" id="clienteNombre" th:field="*{cliente.nombre}" placeholder="Ingrese nombre del cliente" required />
+    <!-- Datos del Cliente -->
+    <label for="cedulaCliente">Cédula del Cliente</label>
+    <input type="text" id="cedulaCliente" name="cedulaCliente" required>
 
-    <label for="vendedorNombre">Nombre del Vendedor</label>
-    <input type="text" id="vendedorNombre" th:field="*{vendedor.nombre}" placeholder="Ingrese nombre del vendedor" required />
+    <label for="nombreCliente">Nombre del Cliente</label>
+    <input type="text" id="nombreCliente" name="nombreCliente" required>
 
-    <label for="articulos">Artículos</label>
-    <select id="articulos" th:field="*{articulos}" multiple size="5" required>
-        <option th:each="articulo : ${articulosDisponibles}"
+    <label for="telefonoCliente">Teléfono del Cliente</label>
+    <input type="text" id="telefonoCliente" name="telefonoCliente" required>
+
+    <!-- Vendedor -->
+    <label for="vendedor">Vendedor</label>
+    <select name="vendedor" id="vendedor" required>
+        <option value="" disabled selected>Seleccione un vendedor</option>
+        <th:block th:each="v : ${vendedores}">
+            <option th:value="${v.id}" th:text="${v.nombre + ' ' + v.apellido}"></option>
+        </th:block>
+    </select>
+
+    <!-- Selección de Artículo -->
+    <label for="articuloSelect">Selecciona un artículo</label>
+    <select id="articuloSelect">
+        <option value="" disabled selected>-- Elige un artículo --</option>
+        <option th:each="articulo : ${articulos}"
                 th:value="${articulo.id}"
-                th:text="${articulo.nombre}">
+                th:data-nombre="${articulo.nombre}"
+                th:data-precio="${articulo.precio}"
+                th:text="${articulo.nombre + ' - $' + #numbers.formatDecimal(articulo.precio, 1, 'COMMA', 2, 'POINT')}">
         </option>
     </select>
 
-    <label for="cantidad">Cantidad</label>
-    <input type="number" id="cantidad" th:field="*{cantidad}" min="1" placeholder="Ingrese cantidad" required />
+    <label for="cantidadInput">Cantidad:</label>
+    <input type="number" id="cantidadInput" min="1" value="1" />
 
-    <label for="descripcion">Descripción</label>
-    <textarea id="descripcion" th:field="*{descripcion}" rows="3" placeholder="Ingrese una descripción"></textarea>
+    <button type="button" id="btnAgregar" class="add-btn">Agregar a la factura</button>
 
-    <label for="total">Total</label>
-    <input type="number" step="0.01" id="total" th:field="*{total}" min="0" placeholder="Ingrese total" required />
+    <!-- Tabla de artículos seleccionados -->
+    <table id="tablaFactura" style="display:none;">
+        <thead>
+            <tr>
+                <th>Artículo</th>
+                <th>Cantidad</th>
+                <th>Precio Unitario</th>
+                <th>Subtotal</th>
+                <th>Acción</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
 
-    <button type="submit" class="btn-submit">Guardar Factura</button>
+    <div class="total">
+        Total a pagar: $<span id="totalGeneral">0.00</span>
+    </div>
+
+    <!-- Inputs ocultos para enviar artículos -->
+    <div id="inputsOcultos"></div>
+
+    <button type="submit" class="btn-submit">Generar Factura</button>
 </form>
+
+<script>
+let totalFactura = 0;
+const tabla = document.getElementById("tablaFactura");
+const cuerpoTabla = tabla.querySelector("tbody");
+const totalSpan = document.getElementById("totalGeneral");
+const inputsOcultos = document.getElementById("inputsOcultos");
+
+document.getElementById("btnAgregar").addEventListener("click", () => {
+    const select = document.getElementById("articuloSelect");
+    const cantidadInput = document.getElementById("cantidadInput");
+    const articuloId = select.value;
+    const nombre = select.options[select.selectedIndex].dataset.nombre;
+    const precio = parseFloat(select.options[select.selectedIndex].dataset.precio);
+    const cantidad = parseInt(cantidadInput.value);
+
+    if (!articuloId || cantidad <= 0) {
+        alert("Selecciona un artículo válido y una cantidad mayor a 0.");
+        return;
+    }
+
+    agregarFila(articuloId, nombre, cantidad, precio);
+
+    select.selectedIndex = 0;
+    cantidadInput.value = 1;
+});
+
+function agregarFila(id, nombre, cantidad, precio) {
+    const subtotal = precio * cantidad;
+    totalFactura += subtotal;
+
+    tabla.style.display = "table";
+    totalSpan.textContent = totalFactura.toFixed(2);
+
+    const fila = document.createElement("tr");
+    fila.innerHTML = `
+        <td>${nombre}</td>
+        <td>${cantidad}</td>
+        <td>$${precio.toFixed(2)}</td>
+        <td>$${subtotal.toFixed(2)}</td>
+        <td><button type="button" class="btnEliminar">Eliminar</button></td>
+    `;
+    cuerpoTabla.appendChild(fila);
+
+    inputsOcultos.innerHTML += `
+        <input type="hidden" name="articuloId[]" value="${id}" />
+        <input type="hidden" name="nombreArticulo[]" value="${nombre}" />
+        <input type="hidden" name="cantidad[]" value="${cantidad}" />
+        <input type="hidden" name="precio[]" value="${precio}" />
+    `;
+
+    fila.querySelector(".btnEliminar").addEventListener("click", () => {
+        totalFactura -= subtotal;
+        totalSpan.textContent = totalFactura.toFixed(2);
+        fila.remove();
+        actualizarInputs();
+        if (cuerpoTabla.children.length === 0) {
+            tabla.style.display = "none";
+        }
+    });
+}
+
+function actualizarInputs() {
+    inputsOcultos.innerHTML = "";
+    [...cuerpoTabla.rows].forEach(fila => {
+        const nombre = fila.cells[0].textContent;
+        const cantidad = fila.cells[1].textContent;
+        const precio = fila.cells[2].textContent.replace("$", "");
+        inputsOcultos.innerHTML += `
+            <input type="hidden" name="nombreArticulo[]" value="${nombre}">
+            <input type="hidden" name="cantidad[]" value="${cantidad}">
+            <input type="hidden" name="precio[]" value="${precio}">
+        `;
+    });
+}
+</script>
 
 </body>
 </html>
-

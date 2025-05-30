@@ -175,13 +175,44 @@
         .add-btn:hover {
             background: #218838;
         }
+		.button-group-center {
+		  position: absolute;
+		  top: 20px; /* Ajusta según la altura que necesites */
+		  left: 50%;
+		  transform: translateX(-50%);
+		  display: flex;
+		  gap: 15px;
+		  z-index: 1000;
+		}
+		
+		.menu-btn {
+		  background-color: #ffd700;
+		  color: #000;
+		  border: none;
+		  padding: 10px 20px;
+		  border-radius: 8px;
+		  font-weight: bold;
+		  cursor: pointer;
+		  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+		  transition: background 0.3s ease;
+		}
+		
+		.menu-btn:hover {
+		  background-color: #e6c200;
+		}
+
     </style>
 </head>
 <body>
 
     <div class="navbar">
         <a href="/"><img src="/img/Logo.jpg" alt="Logo" class="logo-home"></a>
-        <a onclick="openModal()">Facturas</a>
+		<!-- Por este bloque -->
+		<div class="button-group">
+		    <button class="menu-btn" onclick="openModal()">Facturar</button>
+			<button class="menu-btn" onclick="window.location.href='/facturas/misfacturas'">Comprobantes</button>
+ 
+		</div>
     </div>
 
     <!-- Título -->
@@ -201,86 +232,202 @@
         </div>
     </div>
 
-    <!-- Modal de Facturas -->
-    <div class="modal" id="facturaModal">
-        <div class="modal-content">
-            <span class="close-btn" onclick="closeModal()">&times;</span>
-            <h2>Factura</h2>
+	<!-- Modal de Facturas -->
+	<div class="modal" id="facturaModal">
+	    <div class="modal-content">
+	        <span class="close-btn" onclick="closeModal()">&times;</span>
+	        <h2>Factura</h2>
+	
+	        <form id="facturaForm" th:action="@{/facturas/guardar}" method="post">
+	
+	            <!-- Datos del Cliente -->
+	            <label>Cédula del Cliente:</label>
+	            <input type="text" name="cedulaCliente" required>
+	
+	            <label>Nombre del Cliente:</label>
+	            <input type="text" name="nombreCliente" required>
+	
+	            <label>Teléfono del Cliente:</label>
+	            <input type="text" name="telefonoCliente" required>
+	
+				<select name="vendedorId" class="form-control" required>
+				    <option value="" disabled selected>Seleccione un vendedor</option>
+				    <th:block th:each="v : ${vendedores}">
+				        <option th:value="${v.id}" th:text="${v.nombre + ' ' + v.apellido}"></option>
+				    </th:block>
+				</select>
 
-            <label>Cédula del Cliente:</label>
-            <input type="text" id="cedulaCliente">
+ 
+	
+	            <hr style="margin: 15px 0; border: 1px solid #555;" />
+	
+	            <!-- Selección de Artículo -->
+	            <label for="articuloSelect">Selecciona un artículo:</label>
+	            <select id="articuloSelect">
+	                <option value="" disabled selected>-- Elige un artículo --</option>
+	                <option th:each="articulo : ${articulos}"
+	                        th:value="${articulo.id}"
+	                        th:data-nombre="${articulo.nombre}"
+	                        th:data-precio="${articulo.precio}"
+	                        th:text="${articulo.nombre + ' - $' + #numbers.formatDecimal(articulo.precio, 1, 'COMMA', 2, 'POINT')}">
+	                </option>
+	            </select>
+	
+	            <label for="cantidadInput">Cantidad:</label>
+	            <input type="number" id="cantidadInput" min="1" value="1" />
+	
+	            <div class="monto">
+	                Monto actual: $<span id="montoTotal">0.00</span>
+	            </div>
+	
+	            <button type="button" id="btnAgregar" class="add-btn">Agregar a la factura</button>
+	
+	            <!-- Tabla de artículos seleccionados -->
+	            <table id="tablaFactura" style="display:none;">
+	                <thead>
+	                    <tr>
+	                        <th>Artículo</th>
+	                        <th>Cantidad</th>
+	                        <th>Precio Unitario</th>
+	                        <th>Subtotal</th>
+	                        <th>Acción</th>
+	                    </tr>
+	                </thead>
+	                <tbody></tbody>
+	            </table>
+	
+	            <div class="total">
+	                Total a pagar: $<span id="totalGeneral">0.00</span>
+	            </div>
+	
+	            <!-- Inputs ocultos para enviar artículos -->
+	            <div id="inputsOcultos"></div>
+	
+	            <input type="submit" value="Generar Factura" class="add-btn" />
+	        </form>
+	
+	        <div style="text-align: right; color: #ccc;">Fecha: <span id="fechaActual"></span></div>
+	    </div>
+	</div>
 
-            <label>Artículo:</label>
-            <input type="text" id="nombreArticulo">
 
-            <label>Categoría:</label>
-            <input type="text" id="categoriaArticulo">
+	<script>
+	let totalFactura = 0;
+	const tabla = document.getElementById("tablaFactura");
+	const cuerpoTabla = tabla.querySelector("tbody");
+	const totalSpan = document.getElementById("totalGeneral");
+	const totalPagar = document.getElementById("totalPagar");
+	const inputsOcultos = document.getElementById("inputsOcultos");
+	
+	// Función para abrir y cerrar el modal
+	function openModal() {
+	    document.getElementById('facturaModal').style.display = 'flex';
+	    document.getElementById('fechaActual').textContent = new Date().toLocaleDateString();
+	}
+	
+	function closeModal() {
+	    document.getElementById('facturaModal').style.display = 'none';
+	}
+	
+	// Agregar desde select
+	document.getElementById("btnAgregar").addEventListener("click", () => {
+	    const select = document.getElementById("articuloSelect");
+	    const cantidadInput = document.getElementById("cantidadInput");
+	    const articuloId = select.value;
+	    const nombre = select.options[select.selectedIndex].dataset.nombre;
+	    const precio = parseFloat(select.options[select.selectedIndex].dataset.precio);
+	    const cantidad = parseInt(cantidadInput.value);
+	
+	    if (!articuloId || cantidad <= 0) {
+	        alert("Selecciona un artículo válido y una cantidad mayor a 0.");
+	        return;
+	    }
+	
+	    agregarFila(nombre, '', '', cantidad, precio);
+	
+	    select.selectedIndex = 0;
+	    cantidadInput.value = 1;
+	});
+	
+	// Agregar desde el formulario del modal
+	function agregarArticulo() {
+	    const nombre = document.getElementById('nombreArticulo').value;
+	    const categoria = document.getElementById('categoriaArticulo').value;
+	    const descripcion = document.getElementById('descripcionArticulo').value;
+	    const cantidad = parseInt(document.getElementById('cantidadArticulo').value);
+	    const precio = parseFloat(document.getElementById('precioArticulo').value);
+	
+	    if (!nombre || !categoria || !descripcion || cantidad <= 0 || precio <= 0) {
+	        alert("Por favor completa todos los campos del artículo correctamente.");
+	        return;
+	    }
+	
+	    agregarFila(nombre, categoria, descripcion, cantidad, precio);
+	
+	    closeModal();
+	}
+	
+	// Función general para agregar fila a la tabla
+	function agregarFila(nombre, categoria, descripcion, cantidad, precio) {
+	    const subtotal = precio * cantidad;
+	    totalFactura += subtotal;
+	
+	    tabla.style.display = "table";
+	    totalSpan.textContent = totalFactura.toFixed(2);
+	    if (totalPagar) totalPagar.textContent = `Total a pagar: $${totalFactura.toFixed(2)}`;
+	
+	    const fila = document.createElement("tr");
+	    fila.innerHTML = `
+	        <td>${nombre}</td>
+	        ${categoria || descripcion ? `<td>${categoria}</td><td>${descripcion}</td>` : ""}
+	        <td>${cantidad}</td>
+	        <td>$${precio.toFixed(2)}</td>
+	        <td>$${subtotal.toFixed(2)}</td>
+	        <td><button type="button" class="btnEliminar">Eliminar</button></td>
+	    `;
+	    cuerpoTabla.appendChild(fila);
+	
+	    // Inputs ocultos
+	    inputsOcultos.innerHTML += `
+	        <input type="hidden" name="articuloNombre[]" value="${nombre}" />
+	        <input type="hidden" name="categoria[]" value="${categoria}" />
+	        <input type="hidden" name="descripcion[]" value="${descripcion}" />
+	        <input type="hidden" name="cantidad[]" value="${cantidad}" />
+	        <input type="hidden" name="precio[]" value="${precio}" />
+	    `;
+	
+	    fila.querySelector(".btnEliminar").addEventListener("click", () => {
+	        totalFactura -= subtotal;
+	        totalSpan.textContent = totalFactura.toFixed(2);
+	        if (totalPagar) totalPagar.textContent = `Total a pagar: $${totalFactura.toFixed(2)}`;
+	        fila.remove();
+	        actualizarInputs();
+	        if (cuerpoTabla.children.length === 0) {
+	            tabla.style.display = "none";
+	        }
+	    });
+	}
+	
+	// Recalcula los inputs ocultos cuando se elimina una fila
+	function actualizarInputs() {
+	    inputsOcultos.innerHTML = "";
+	    [...cuerpoTabla.rows].forEach(fila => {
+	        const nombre = fila.cells[0].textContent;
+	        const categoria = fila.cells.length === 7 ? fila.cells[1].textContent : "";
+	        const descripcion = fila.cells.length === 7 ? fila.cells[2].textContent : "";
+	        const cantidad = fila.cells[fila.cells.length === 7 ? 3 : 1].textContent;
+	        const precio = fila.cells[fila.cells.length === 7 ? 4 : 2].textContent.replace("$", "");
+	        inputsOcultos.innerHTML += `
+	            <input type="hidden" name="articuloNombre[]" value="${nombre}">
+	            <input type="hidden" name="categoria[]" value="${categoria}">
+	            <input type="hidden" name="descripcion[]" value="${descripcion}">
+	            <input type="hidden" name="cantidad[]" value="${cantidad}">
+	            <input type="hidden" name="precio[]" value="${precio}">
+	        `;
+	    });
+	}
+	</script>
 
-            <label>Cantidad:</label>
-            <input type="number" id="cantidadArticulo" min="1" value="1">
 
-            <label>Precio Unitario:</label>
-            <input type="number" id="precioArticulo" min="0" step="0.01">
-
-            <button class="add-btn" onclick="agregarArticulo()">Agregar Artículo</button>
-
-            <table id="tablaFactura">
-                <thead>
-                    <tr>
-                        <th>Artículo</th>
-                        <th>Categoría</th>
-                        <th>Cantidad</th>
-                        <th>Precio Unitario</th>
-                        <th>Subtotal</th>
-                    </tr>
-                </thead>
-                <tbody>
-                </tbody>
-            </table>
-
-            <div class="total" id="totalPagar">Total a pagar: $0.00</div>
-            <div style="text-align: right; color: #ccc;">Fecha: <span id="fechaActual"></span></div>
-        </div>
-    </div>
-
-    <script>
-        function openModal() {
-            document.getElementById('facturaModal').style.display = 'flex';
-            document.getElementById('fechaActual').textContent = new Date().toLocaleDateString();
-        }
-
-        function closeModal() {
-            document.getElementById('facturaModal').style.display = 'none';
-        }
-
-        function agregarArticulo() {
-            var nombre = document.getElementById('nombreArticulo').value;
-            var categoria = document.getElementById('categoriaArticulo').value;
-            var cantidad = parseInt(document.getElementById('cantidadArticulo').value);
-            var precio = parseFloat(document.getElementById('precioArticulo').value);
-
-            if (!nombre || !categoria || !cantidad || !precio) {
-                alert("Por favor completa todos los campos.");
-                return;
-            }
-
-            var subtotal = cantidad * precio;
-            var tabla = document.getElementById('tablaFactura').getElementsByTagName('tbody')[0];
-            var row = tabla.insertRow();
-            row.innerHTML = `<td>${nombre}</td><td>${categoria}</td><td>${cantidad}</td><td>$${precio.toFixed(2)}</td><td>$${subtotal.toFixed(2)}</td>`;
-
-            actualizarTotal();
-        }
-
-        function actualizarTotal() {
-            var tabla = document.getElementById('tablaFactura').getElementsByTagName('tbody')[0];
-            var total = 0;
-            for (var i = 0; i < tabla.rows.length; i++) {
-                var subtotal = parseFloat(tabla.rows[i].cells[4].textContent.replace('$', ''));
-                total += subtotal;
-            }
-            document.getElementById('totalPagar').textContent = `Total a pagar: $${total.toFixed(2)}`;
-        }
-    </script>
 </body>
 </html>

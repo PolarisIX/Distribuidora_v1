@@ -1,7 +1,9 @@
 package com.Distribuidora.app.controller;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -9,15 +11,14 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
-//import com.Distribuidora.app.model.Cliente;
 import com.Distribuidora.app.model.Factura;
-//import com.Distribuidora.app.model.Vendedor;
+import com.Distribuidora.app.model.Vendedor;
 import com.Distribuidora.app.model.Articulo;
-import com.Distribuidora.app.repository.ClienteRepository;
 import com.Distribuidora.app.repository.FacturaRepository;
 import com.Distribuidora.app.repository.VendedorRepository;
 import com.Distribuidora.app.repository.ArticuloRepository;
 
+import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 
 @Controller
@@ -28,24 +29,50 @@ public class FacturaWebController {
     private FacturaRepository facturaRepository;
 
     @Autowired
-    private ClienteRepository clienteRepository;
-
-    @Autowired
     private VendedorRepository vendedorRepository;
 
     @Autowired
-    private ArticuloRepository articuloRepository;  // Cambiado de RepuestoRepository a ArticuloRepository
+    private ArticuloRepository articuloRepository;
+    
+    @GetMapping("/misfacturas")
+    public String verMisFacturas(Model model) {
+        List<Factura> facturas = facturaRepository.findAll();
+        model.addAttribute("facturas", facturas);
+        return "facturas";
+    }
 
-    // Método para calcular el total de la factura
+
+    private void cargarDatosFormulario(Model model) {
+        model.addAttribute("vendedores", vendedorRepository.findAll());
+        model.addAttribute("articulos", articuloRepository.findAll());
+    }
+
     private double calcularTotalFactura(Factura factura) {
         double total = 0;
+        if (factura.getArticulos() != null) {
+            for (Articulo articulo : factura.getArticulos()) {
+                total += articulo.getPrecio() * articulo.getCantidad();
+            }
+        }
+        return total;
+    }
 
-        for (Articulo articulo : factura.getArticulos()) {
-            int cantidad = articulo.getCantidad();
-            total += articulo.getPrecio() * cantidad;
+    private void procesarFactura(Factura factura, Map<String, String> cantidades, String vendedorId) {
+        Vendedor vendedor = vendedorRepository.findById(vendedorId).orElse(null);
+        factura.setVendedor(vendedor);
+
+        if (factura.getArticulos() != null) {
+            for (Articulo articulo : factura.getArticulos()) {
+                String key = "cantidad-" + articulo.getId();
+                if (cantidades.containsKey(key)) {
+                    int cantidad = Integer.parseInt(cantidades.get(key));
+                    articulo.setCantidad(cantidad);
+                }
+            }
         }
 
-        return total;
+        double total = calcularTotalFactura(factura);
+        factura.setTotal(total);
     }
 
     @GetMapping
@@ -55,42 +82,73 @@ public class FacturaWebController {
         return "facturas";
     }
 
- 
     @GetMapping("/nuevo")
     public String mostrarFormularioFactura(Model model) {
         model.addAttribute("factura", new Factura());
-
-        List<Articulo> articulosDisponibles = articuloRepository.findAll();  // Trae todos los artículos
-        model.addAttribute("articulosDisponibles", articulosDisponibles);   // Se los pasa al modelo
-
-        return "factura_form";
+        cargarDatosFormulario(model); // Debe cargar vendedores y artículos
+        return "formFactura"; // Asegúrate de que coincida con tu vista
     }
-
 
     @PostMapping("/guardar")
-    public String guardarFactura(@Valid @ModelAttribute Factura factura, 
-                                 BindingResult result, 
-                                 Model model, 
-                                 @RequestParam Map<String, String> cantidades) {
-        if (result.hasErrors()) {
+    public String guardarFactura(@Valid @ModelAttribute Factura factura,
+                                 BindingResult result,
+                                 @RequestParam(name = "articuloNombre") List<String> nombres,
+                                 @RequestParam(name = "cantidad") List<Integer> cantidades,
+                                 @RequestParam(name = "precio") List<Double> precios,
+                                 @RequestParam(name = "vendedorId") String vendedorId,
+                                 Model model) {
+
+        // Buscar el objeto Vendedor por ID
+        Optional<Vendedor> vendedorOpt = vendedorRepository.findById(vendedorId);
+        if (!vendedorOpt.isPresent()) {
+            model.addAttribute("error", "Debe seleccionar un vendedor válido.");
+            model.addAttribute("factura", factura);
             cargarDatosFormulario(model);
-            return "factura_form";
+            return "formFactura";
         }
 
-        for (Articulo articulo : factura.getArticulos()) {
-            String cantidadKey = "cantidad-" + articulo.getId();
-            if (cantidades.containsKey(cantidadKey)) {
-                int cantidad = Integer.parseInt(cantidades.get(cantidadKey));
-                articulo.setCantidad(cantidad);
-            }
+        // Validación de artículos
+        if (nombres.isEmpty() || cantidades.isEmpty() || precios.isEmpty()
+                || nombres.size() != cantidades.size()
+                || nombres.size() != precios.size()) {
+            model.addAttribute("error", "Debe agregar al menos un artículo con cantidades y precios válidos.");
+            model.addAttribute("factura", factura);
+            cargarDatosFormulario(model);
+            return "formFactura";
         }
 
-        double total = calcularTotalFactura(factura);
+        // Crear lista de artículos
+        List<Articulo> articulos = new ArrayList<>();
+        for (int i = 0; i < nombres.size(); i++) {
+            Articulo articulo = new Articulo();
+            articulo.setNombre(nombres.get(i));
+            articulo.setCantidad(cantidades.get(i));
+            articulo.setPrecio(precios.get(i));
+            articulos.add(articulo);
+        }
+
+        // Asignar artículos y vendedor
+        factura.setArticulos(articulos);
+        factura.setVendedor(vendedorOpt.get());
+
+        // Calcular total
+        double total = articulos.stream()
+                                .mapToDouble(a -> a.getCantidad() * a.getPrecio())
+                                .sum();
         factura.setTotal(total);
 
+        // Validación final
+        if (result.hasErrors()) {
+            model.addAttribute("factura", factura);
+            cargarDatosFormulario(model);
+            return "formFactura";
+        }
+
+        // Guardar factura
         facturaRepository.save(factura);
-        return "redirect:/facturas";
+        return "redirect:/facturas/misfacturas";
     }
+
 
     @GetMapping("/editar/{id}")
     public String editarFactura(@PathVariable String id, Model model) {
@@ -103,29 +161,28 @@ public class FacturaWebController {
     }
 
     @PostMapping("/actualizar/{id}")
-    public String actualizarFactura(@PathVariable String id, 
-                                    @Valid @ModelAttribute Factura factura, 
-                                    BindingResult result, 
-                                    Model model, 
-                                    @RequestParam Map<String, String> cantidades) {
+    public String actualizarFactura(@PathVariable String id,
+                                    @Valid @ModelAttribute Factura factura,
+                                    BindingResult result,
+                                    Model model,
+                                    @RequestParam Map<String, String> cantidades,
+                                    @RequestParam("vendedor") String vendedorId) {
+
+        if (vendedorId == null || vendedorId.trim().isEmpty()) {
+            result.rejectValue("vendedor", null, "Debe seleccionar un vendedor válido.");
+        }
+
+        if (factura.getArticulos() == null || factura.getArticulos().isEmpty()) {
+            result.rejectValue("articulos", null, "Debe seleccionar al menos un artículo.");
+        }
+
         if (result.hasErrors()) {
             cargarDatosFormulario(model);
             return "factura_form";
         }
 
         factura.setId(id);
-
-        for (Articulo articulo : factura.getArticulos()) {
-            String cantidadKey = "cantidad-" + articulo.getId();
-            if (cantidades.containsKey(cantidadKey)) {
-                int cantidad = Integer.parseInt(cantidades.get(cantidadKey));
-                articulo.setCantidad(cantidad);
-            }
-        }
-
-        double total = calcularTotalFactura(factura);
-        factura.setTotal(total);
-
+        procesarFactura(factura, cantidades, vendedorId);
         facturaRepository.save(factura);
         return "redirect:/facturas";
     }
@@ -136,10 +193,11 @@ public class FacturaWebController {
         return "redirect:/facturas";
     }
 
-    private void cargarDatosFormulario(Model model) {
-        model.addAttribute("clientes", clienteRepository.findAll());
-        model.addAttribute("vendedores", vendedorRepository.findAll());
-        model.addAttribute("articulos", articuloRepository.findAll());  // Cambiado de repuestos a articulos
+    @GetMapping("/ver/{id}")
+    public String verFactura(@PathVariable String id, Model model) {
+        Factura factura = facturaRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Factura no encontrada: " + id));
+        model.addAttribute("factura", factura);
+        return "factura_detalle"; // Vista opcional
     }
 }
-

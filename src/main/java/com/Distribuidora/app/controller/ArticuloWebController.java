@@ -1,7 +1,15 @@
 package com.Distribuidora.app.controller;
 
 import com.Distribuidora.app.model.Articulo;
+import com.Distribuidora.app.model.Cliente;
+import com.Distribuidora.app.model.Vendedor;
 import com.Distribuidora.app.repository.ArticuloRepository;
+import com.Distribuidora.app.repository.ClienteRepository;
+import com.Distribuidora.app.repository.VendedorRepository;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -22,6 +30,9 @@ public class ArticuloWebController {
     @Autowired
     private ArticuloRepository articuloRepo;
 
+    @Autowired
+    private ClienteRepository clienteRepo;
+
     // Ruta para guardar imágenes dentro de resources/static/img (debe existir)
     private final String uploadDir = System.getProperty("user.dir") + "/src/main/resources/static/img";
 
@@ -33,18 +44,44 @@ public class ArticuloWebController {
     }
     
     @GetMapping("/cliente/catalogo")
-    public String mostrarCatalogoCliente(Model model) {
+    public String mostrarCatalogoCliente(HttpSession session, Model model) {
+        String clienteId = (String) session.getAttribute("clienteId");
+
+        if (clienteId == null) {
+            return "redirect:/administrador/"; // redirige a login si no está logueado
+        }
+
+        Optional<Cliente> clienteOpt = clienteRepo.findById(clienteId);
+        if (clienteOpt.isEmpty()) {
+            return "redirect:/administrador/"; // cliente no encontrado
+        }
+
+        Cliente cliente = clienteOpt.get();
         List<Articulo> articulos = articuloRepo.findAll();
+
         model.addAttribute("articulos", articulos);
-        return "indexCliente"; // Nombre de tu archivo .html (sin .html)
+        model.addAttribute("cliente", cliente);
+
+        return "indexCliente";
     }
+
+
+
     
+    @Autowired
+    private VendedorRepository vendedorRepo;
+
     @GetMapping("/cliente/catalogoV")
     public String mostrarCatalogoClientes(Model model) {
         List<Articulo> articulos = articuloRepo.findAll();
+        List<Vendedor> vendedores = vendedorRepo.findAll(); // <-- Obtener los vendedores
+
         model.addAttribute("articulos", articulos);
-        return "indexVendedor"; // Nombre de tu archivo .html (sin .html)
+        model.addAttribute("vendedores", vendedores); // <-- Agregar al modelo
+
+        return "indexVendedor"; // Vista que contiene el modal y el formulario
     }
+
 
 
     // Mostrar formulario para nuevo artículo

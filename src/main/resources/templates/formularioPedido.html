@@ -1,0 +1,164 @@
+<!DOCTYPE html> 
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Editar Pedido</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto&display=swap">
+    <style>
+        /* (Tu CSS original se mantiene sin cambios) */
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f5f7fa;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+
+        .logo-home {
+            width: 120px;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 30px;
+        }
+
+        .pedido-container {
+            max-width: 900px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        label {
+            display: block;
+            margin-top: 20px;
+            font-weight: bold;
+            color: #34495e;
+        }
+
+        input[type="text"],
+        input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccd1d9;
+            border-radius: 8px;
+            margin-top: 5px;
+            font-size: 14px;
+        }
+
+        input[type="submit"] {
+            margin-top: 30px;
+            background-color: #27ae60;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            width: 100%;
+            transition: background-color 0.3s;
+        }
+
+        input[type="submit"]:hover {
+            background-color: #219150;
+        }
+
+        table {
+            width: 100%;
+            margin-top: 20px;
+            border-collapse: collapse;
+            background-color: #fafafa;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: center;
+        }
+
+        th {
+            background-color: #ecf0f1;
+            color: #2c3e50;
+        }
+
+        button {
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        button:hover {
+            background-color: #c0392b;
+        }
+
+        @media (max-width: 600px) {
+            table, thead, tbody, th, td, tr {
+                display: block;
+            }
+
+            th {
+                text-align: left;
+            }
+
+            td {
+                margin-bottom: 10px;
+                text-align: left;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<a href="/"><img src="/img/Logo.jpg" alt="Logo" class="logo-home"></a>
+<h1>Editar Pedido</h1>
+
+<div class="pedido-container">
+    <form id="pedidoForm" th:action="@{/pedidos/editar}" method="post">
+
+        <!-- Campo oculto para ID del pedido -->
+        <input type="hidden" name="id" th:value="${pedido.id}" />
+
+        <!-- Tabla de artículos (solo lectura) -->
+        <table id="tablaPedido">
+            <thead>
+                <tr>
+                    <th>Artículo</th>
+                    <th>Cantidad</th>
+                    <th>Precio Unitario</th>
+                    <th>Subtotal</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="articulo : ${pedido.articulos}">
+                    <td><input type="text" th:value="${articulo.nombre}" readonly /></td>
+                    <td><input type="number" th:value="${articulo.cantidad}" readonly /></td>
+                    <td><input type="number" th:value="${articulo.precio}" readonly /></td>
+                    <td><span th:text="${articulo.cantidad * articulo.precio}">0.00</span></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- Dirección de entrega -->
+        <label for="direccionEntrega">Dirección de Entrega:</label>
+        <input type="text" id="direccionEntrega" name="direccionEntrega" th:value="${pedido.direccionEntrega}" required />
+
+        <!-- Notas -->
+        <label for="notas">Notas:</label>
+        <input type="text" id="notas" name="notas" th:value="${pedido.notas}" />
+
+        <!-- Botón de envío -->
+        <input type="submit" value="Actualizar Pedido" />
+    </form>
+</div>
+
+</body>
+</html>

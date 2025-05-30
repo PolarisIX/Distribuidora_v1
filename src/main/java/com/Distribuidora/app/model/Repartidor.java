@@ -14,7 +14,7 @@ public class Repartidor {
     private String telefono;  // Número de teléfono
     private String direccion;  // Dirección del repartidor
     private String estado;  // Estado (activo, inactivo, suspendido)
-    private String vehiculo;  // Descripción del vehículo
+    
     private boolean disponibilidad;  // Si el repartidor está disponible para entregas
     private String cedula;  // Cédula del repartidor
 
@@ -76,15 +76,9 @@ public class Repartidor {
         this.estado = estado;
     }
 
-    public String getVehiculo() {
-        return vehiculo;
-    }
 
-    public void setVehiculo(String vehiculo) {
-        this.vehiculo = vehiculo;
-    }
 
-    public boolean isDisponibilidad() {
+    public boolean getDisponibilidad() {
         return disponibilidad;
     }
 
