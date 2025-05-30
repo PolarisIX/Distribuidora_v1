@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Pedidos</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f7fa;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 30px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: #fff;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        thead {
+            background-color: #3498db;
+            color: white;
+        }
+
+        thead th, tbody td {
+            padding: 12px 15px;
+            text-align: left;
+            vertical-align: top;
+        }
+
+        tbody tr {
+            border-bottom: 1px solid #ddd;
+            transition: background-color 0.3s ease;
+        }
+
+        tbody tr:hover {
+            background-color: #ecf0f1;
+        }
+
+        .pedido-aprobado {
+            border-left: 6px solid green;
+        }
+
+        .pedido-rechazado {
+            border-left: 6px solid red;
+        }
+
+        .acciones {
+            display: flex;
+            gap: 10px;
+        }
+
+        button {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .btn-aceptar {
+            background-color: #2ecc71;
+            color: white;
+        }
+
+        .btn-rechazar {
+            background-color: #e74c3c;
+            color: white;
+        }
+
+        select {
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+
+        a {
+            display: inline-block;
+            margin-top: 20px;
+            text-decoration: none;
+            color: #3498db;
+            font-weight: 600;
+            border: 2px solid #3498db;
+            padding: 8px 16px;
+            border-radius: 5px;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        a:hover {
+            background-color: #3498db;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <h1>Pedidos</h1>
+
+    <table>
+        <thead>
+            <tr>
+                <th>ID Pedido</th>
+                <th>Dirección Entrega</th>
+                <th>Total</th>
+                <th>Notas</th>
+                <th>Artículos</th>
+                <th>Estado</th>
+                <th>Repartidor Asignado</th> <!-- NUEVA COLUMNA -->
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="pedido : ${pedidos}"
+                th:id="'pedido-' + ${pedido.id}"
+                th:classappend="${pedido.estado == 'aceptado'} ? 'pedido-aprobado' : (${pedido.estado == 'rechazado'} ? 'pedido-rechazado' : '')">
+                <td th:text="${pedido.id}"></td>
+                <td th:text="${pedido.direccionEntrega}"></td>
+                <td th:text="${pedido.total}"></td>
+                <td th:text="${pedido.notas}"></td>
+                <td>
+                    <ul>
+                        <li th:each="articulo : ${pedido.articulos}"
+                            th:text="${articulo.nombre + ' (x' + articulo.cantidad + ') - $' + articulo.precio}"></li>
+                    </ul>
+                </td>
+                <td>
+                    <form th:action="@{/pedidos/cambiarEstado}" method="post">
+                        <input type="hidden" name="id" th:value="${pedido.id}" />
+                        <select name="estado">
+                            <option value="pendiente" th:selected="${pedido.estado == 'pendiente'}">Pendiente</option>
+                            <option value="en curso" th:selected="${pedido.estado == 'en curso'}">En curso</option>
+                            <option value="retrasado" th:selected="${pedido.estado == 'retrasado'}">Retrasado</option>
+                            <option value="entregado" th:selected="${pedido.estado == 'entregado'}">Entregado</option>
+                            <option value="aceptado" th:selected="${pedido.estado == 'aceptado'}">Aceptado</option>
+                            <option value="rechazado" th:selected="${pedido.estado == 'rechazado'}">Rechazado</option>
+                        </select>
+                        <button type="submit">Actualizar</button>
+                    </form>
+                </td>
+
+                <!-- NUEVA CELDA: mostrar repartidor -->
+                <td th:text="${pedido.repartidor != null ? pedido.repartidor.nombre : 'Sin asignar'}"></td>
+				
+
+				<td class="acciones">
+				    <a th:href="@{/pedidos/eliminar/{id}(id=${pedido.id})}" class="btn btn-danger">Eliminar</a>
+				</td>
+ 
+ 
+            </tr>
+        </tbody>
+    </table> 
+
+	<a href="javascript:history.back()">Volver</a>
+ 
+</body>
+ 
+</html>

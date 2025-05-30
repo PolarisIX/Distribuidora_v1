@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Mis Pedidos</title>
+    <style>
+        /* Reset y base */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f7fa;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 30px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: #fff;
+            box-shadow: 0 2px 8px rgb(0 0 0 / 0.1);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        thead {
+            background-color: #3498db;
+            color: white;
+        }
+        thead th {
+            padding: 12px 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+        tbody tr {
+            border-bottom: 1px solid #ddd;
+            transition: background-color 0.3s ease;
+        }
+        tbody tr:hover {
+            background-color: #ecf0f1;
+        }
+        tbody td {
+            padding: 12px 15px;
+            vertical-align: top;
+        }
+        ul {
+            padding-left: 20px;
+            margin: 0;
+            list-style-type: disc;
+        }
+        a {
+            display: inline-block;
+            margin-top: 20px;
+            text-decoration: none;
+            color: #3498db;
+            font-weight: 600;
+            border: 2px solid #3498db;
+            padding: 8px 16px;
+            border-radius: 5px;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        a:hover {
+            background-color: #3498db;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <h1>Mis Pedidos</h1>
+
+    <table>
+        <thead>
+            <tr>
+                <th>ID Pedido</th>
+                <th>Dirección Entrega</th>
+                <th>Total</th>
+                <th>Notas</th>
+                <th>Artículos</th>
+                <th>Estado</th> <!-- NUEVA COLUMNA -->
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="pedido : ${pedidos}">
+                <td th:text="${pedido.id}"></td>
+                <td th:text="${pedido.direccionEntrega}"></td>
+                <td th:text="${pedido.total}"></td>
+                <td th:text="${pedido.notas}"></td>
+                <td>
+                    <ul>
+                        <li th:each="articulo : ${pedido.articulos}"
+                            th:text="${articulo.nombre + ' (x' + articulo.cantidad + ') - $' + articulo.precio}"></li>
+                    </ul>
+                </td>
+                <td th:text="${pedido.estado}"></td> <!-- Mostrar estado sin edición -->
+                <td>
+                    <a th:href="@{/pedidos/editar/{id}(id=${pedido.id})}">Editar</a> |
+                    <a th:href="@{/pedidos/eliminarCliente/{id}(id=${pedido.id})}"
+                       onclick="return confirm('¿Estás seguro de que deseas eliminar este pedido?');"
+                       style="color: red;">Eliminar</a>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <a th:href="@{/articulos/cliente/catalogo}">Volver</a>
+</body>
+</html>
+
